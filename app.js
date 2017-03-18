@@ -39,6 +39,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var exphbs = require('express-handlebars');
+var handlebars = require('handlebars');
+var helpers = require('handlebars-form-helpers');
 var expressValidator = require('express-validator');
 var flash = require('connect-flash');
 var session = require('express-session');
@@ -71,13 +73,19 @@ app.set('views', path.join(__dirname, 'views'));
 app.engine('handlebars', exphbs({defaultLayout:'layout'}));
 app.set('view engine', 'handlebars');
 
-var hbs = exphbs.create({
+
+handlebars.registerHelper("inc", function(value, options)
+{
+    return parseInt(value) + 1;
+});
+
+/*var hbs = exphbs.create({
     // Specify helpers which are only registered on this instance.
     helpers: {
         foo: function () { return 'FOO!'; },
         bar: function () { return 'BAR!'; }
     }
-});
+}); */
 
 /*Set Parsing Modules								*/
 /****************************************************/
