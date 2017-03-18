@@ -1,0 +1,7 @@
+<h3>You are in the Titan Bookstore Queue, <strong>{{ user.firstname }}</strong> <strong>{{ user.lastname }}</strong>!</h3>
+<h3>Your position in queue is {{count}}.</h3>
+<h3>Your average wait time is {{waitTime}}.</h3>  
+<form method="post" action="/users/deleteuser">
+	<!-- Need to create a delete user from queue route -->
+	<button id="queOut" type="submit" class="btn btn-default" value={{_id}}>QmeOut</button>
+</form>
