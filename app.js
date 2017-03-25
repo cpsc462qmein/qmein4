@@ -1,40 +1,42 @@
 /****************************************************/
 /****************************************************/
 /****************************************************/
-/*													*/
+/*													                        */
 /*QmeIn Web Application 1.0                         */
-/*													*/
-/*Date:												*/
-/*March 16, 2017									*/
-/*													*/
-/*Team Members:										*/
-/*Chauhan, Pranay									*/
-/*Chiu, Alexander									*/
-/*Kulkarni, Gargi									*/
-/*Padsala, Chirag									*/
-/*Pardhiye, Prathmesh								*/
-/*													*/
-/*About:											*/
-/*QmeIn Web Application allows individuals to 		*/
-/*digitally queue themselves into a line. This 		*/
-/*gives individuals the freedom to be away from 	*/
-/*the local environment from where the physical 	*/
-/*transaction will occur. Thus, freeing the 		*/
-/*individual to complete other tasks until the 		*/
-/*time of transaction. QmeIn Web Application will	*/
-/*will send notice(s) prior to transaction time,	*/
-/*prompting the individual to arrive at the 		*/
-/*transaction location.								*/
-/*													*/
+/*													                        */
+/*Date:												                      */
+/*March 16, 2017									                  */
+/*													                        */
+/*Team Members:										                  */
+/*Chauhan, Pranay									                  */
+/*Chiu, Alexander									                  */
+/*Kulkarni, Gargi									                  */
+/*Padsala, Chirag									                  */
+/*Pardhiye, Prathmesh								                */
+/*													                        */
+/*About:											                      */
+/*QmeIn Web Application allows individuals to 		  */
+/*digitally queue themselves into a line. This 		  */
+/*gives individuals the freedom to be away from 	  */
+/*the local environment from where the physical 	  */
+/*transaction will occur. Thus, freeing the 		    */
+/*individual to complete other tasks until the 		  */
+/*time of transaction. QmeIn Web Application will	  */
+/*will send notice(s) prior to transaction time,	  */
+/*prompting the individual to arrive at the 	    	*/
+/*transaction location.					              			*/
+/*													                        */
 /****************************************************/
 /****************************************************/
 /****************************************************/
 
-
-
-/*Load Modules										*/
+/*Load Modules										                  */
 /****************************************************/
+/*Initialize App                                    */
 var express = require('express');
+var app = express();
+var http = require('http').Server(app);
+/****************************************************/
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
@@ -49,57 +51,60 @@ var LocalStrategy = require('passport-local').Strategy;
 var mongo = require('mongodb');
 var mongoose = require('mongoose');
 
-
 /*Connect to Database using Mongoose to Local Data	*/
 /****************************************************/
 mongoose.connect('mongodb://localhost:27017/data');
 var db = mongoose.connection;
 
-
-/*Load Routes										*/
+/*Start up socket.io for real-time stuff            */
 /****************************************************/
-var routes = require('./routes/index');
-var users = require('./routes/users');
+//var io = require('socket.io')(http);
+//io.on('connection', function(socket){
+//  console.log('a user connected');
+//  socket.on('disconnect', function(){
+//    console.log('a user disconneted');
+//  });
+//});
 
-
-/*Initialize App									*/
+/*Load Routes                                       */
 /****************************************************/
-var app = express();
+var indexRoutes = require('./routes/indexRoutes');
+var userRoutes = require('./routes/userRoutes');
+var merchantRoutes = require('./routes/merchantRoutes');
 
-
-/*Set 'Handlebars' as Template Engine				*/
+/*Set 'Handlebars' as Template Engine				        */
 /****************************************************/
 app.set('views', path.join(__dirname, 'views'));
 app.engine('handlebars', exphbs({defaultLayout:'layout'}));
 app.set('view engine', 'handlebars');
 
 
-handlebars.registerHelper("inc", function(value, options)
-{
+handlebars.registerHelper("inc", function(value, options){
     return parseInt(value) + 1;
 });
 
-/*var hbs = exphbs.create({
-    // Specify helpers which are only registered on this instance.
-    helpers: {
-        foo: function () { return 'FOO!'; },
-        bar: function () { return 'BAR!'; }
-    }
-}); */
+/*handlebars.registerHelper("timer", function(value){
+    // Need to convert to milliseconds. Hardcoded an average time of 2 minutes.
+    var countdown = (parseInt(value) + 1) * 2 * 60 * 1000;
+    setInterval(function(){
+        countdown--;
+        io.sockets.emit('timer', {countdown: countdown});
+    });
+});
 
-/*Set Parsing Modules								*/
+/*Set Parsing Modules								                */
 /****************************************************/
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 
-/*Set Folder for Static Files						*/
+/*Set Folder for Static Files						            */
 /****************************************************/
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-/*Set Sessions										*/
+/*Set Sessions										                  */
 /****************************************************/
 app.use(session({
     secret: 'secret',
@@ -108,14 +113,14 @@ app.use(session({
 }));
 
 
-/*Initialize and use Sessions through Passport 		*/
-/*Middleware										*/
+/*Initialize and use Sessions through Passport 		  */
+/*Middleware										                    */
 /****************************************************/
 app.use(passport.initialize());
 app.use(passport.session());
 
 
-/*Parse and Validate URL 							*/
+/*Parse and Validate URL 							              */
 /****************************************************/
 app.use(expressValidator({
   errorFormatter: function(param, msg, value) {
@@ -135,12 +140,12 @@ app.use(expressValidator({
 }));
 
 
-/*Set 'Flash'										*/
+/*Set 'Flash'										                    */
 /****************************************************/
 app.use(flash());
 
 
-/*Set Global Variables								*/
+/*Set Global Variables								              */
 /****************************************************/
 app.use(function (req, res, next) {
   res.locals.success_msg = req.flash('success_msg');
@@ -151,20 +156,15 @@ app.use(function (req, res, next) {
 });
 
 
-/*Set Routes										*/
+/*Set Routes										                    */
 /****************************************************/
-app.use('/', routes);
-app.use('/users', users);
+app.use('/', indexRoutes);
+app.use('/users', userRoutes);
+app.use('/merchant', merchantRoutes);
 
 
-/*Set Port											*/
+/*Set Port											                    */
 /****************************************************/
-app.set('port', (process.env.PORT || 3000));
-
-
-/*Listen for Port and Console Log Successful 		*/
-/*Connection										*/
-/****************************************************/
-app.listen(app.get('port'), function(){
-	console.log('Server started on port '+app.get('port'));
+http.listen(3000, function(){
+  console.log('Server listening on *:3000');
 });
