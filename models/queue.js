@@ -16,7 +16,8 @@ var QueueSchema = mongoose.Schema({
 		type: Number
 	},
 	date: {
-		type: Date, default: Date.now
+		type: Date, 
+		default: Date.now // This is in milliseconds
 	}
 });
 
@@ -25,6 +26,11 @@ var Queue = module.exports = mongoose.model('Queue', QueueSchema);
 module.exports.createQueue = function(newQueue, callback){
 		newQueue.save(callback);
 };
+
+module.exports.getQueueByEmail = function(email, callback){
+	var email = {email: email};
+	Queue.findOne(email, callback);
+}
 
 module.exports.getQueueByLastname = function(lastname, callback){
 	var query = {lastname: lastname};
