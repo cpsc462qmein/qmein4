@@ -13,23 +13,35 @@ router.post('/addtoqueue', function(req, res){
 	var phonenumber = req.body.phonenumber;
 	var email = req.body.email;
 	
-	// If user is already queued, redirect user to the queuestatus.
-		var newQueue = new Queue({
-		firstname: firstname,
-		lastname: lastname,
-		phonenumber: phonenumber,
-		email: email
-		});
+	Queue.findOne({email:email}, function(err, result){
+		if(err) throw err;
+		// If user is not in queue, add to queue
+		if(!result)
+		{
+			var newQueue = new Queue({
+				firstname: firstname,
+				lastname: lastname,
+				phonenumber: phonenumber,
+				email: email
+			});
 	
-		Queue.createQueue(newQueue, function(err, queue){
-			if(err) throw err;
-		});
+			Queue.createQueue(newQueue, function(err, queue){
+				if(err) throw err;
+			});
 		
-		console.log('The following user added to queue:');
-		console.log(req.body.firstname, req.body.lastname);
-		console.log(req.body.email);
-		console.log(req.body.phonenumber);
-		res.redirect('/queuestatus');
+			console.log('The following user added to queue:');
+			console.log(req.body.firstname, req.body.lastname);
+			console.log(req.body.email);
+			console.log(req.body.phonenumber);
+			res.redirect('/queuestatus');
+		}
+		// If user is already queued, redirect user to the queuestatus.
+		else
+		{
+			req.flash('error_msg', 'You are already in queue!');
+			res.redirect('/queuestatus');
+		}
+	});
 });
 
 // Queue Out
